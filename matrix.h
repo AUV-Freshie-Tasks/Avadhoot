@@ -40,7 +40,6 @@ public:
 		}
 	}
 };
-template<typename T, int R, int C>
 bool operator==(const Matrix<T,R,C>& a, const Matrix<T,R,C>& b){
 }
 template<typename T, int R, int C>
@@ -56,7 +55,6 @@ struct hash<Matrix<T,R,C>>{
 		return h;
 	}
 }
-template<typename T, int R, int C>
 Matrix<T,C,R> transpose(Matrix<T,R,C> a){
 }
 			
@@ -165,13 +163,11 @@ Matrix<T,R,Q> MatrixMultiplication(Matrix<T,R,C> a, Matrix<T,C,Q> b){
 template<typename T, int N, int N>
 Matrix<double,N,N> MatrixInverse(Matrix<T,N,N> a){
 }
-template<typename T, int N, int N>
 Matrix<double,N,1> EquationSolver(Matrix<T,N,N> a, Matrix<T,N,1> b){
 }
 template<typename T, int R, int C>
 Matrix<T,R,C> InputMatrix(){
 }
-template<typename T, int R, int C>
 void PrintMatrix(Matrix<T,R,C> a){
 }
 
@@ -181,9 +177,7 @@ class LossFunction{
     public:
         double MSE(Matrix<double,R,2> pred, Matrix<double,R,2> actual);
 };
-template<typename T, int R, int C>
 Matrix<double,C+1,1> Gradient_Descent(Matrix<double,R,C+1> x, Matrix<double,R,1> y, double alpha, int epochs);
-template<typename T, int R, int C>
 class LinearRegressor {  
     public:
         int epoch = 0;
@@ -197,7 +191,7 @@ class LinearRegressor {
 
     private:
         double gettingValues(array<double,C+1> x);
-};
+}
 
 		
 
