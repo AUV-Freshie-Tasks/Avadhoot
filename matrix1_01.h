@@ -5,42 +5,50 @@
 #include <unordered_map>
 #include <array>
 #include <cstddef>
+#include <sstream>
+#include <string>
 #include <functional>
 using namespace std;
 template<typename T>
 class Matrix{
 public:
         vector<vector<T>> matrix;
-        Matrix(int R, int C){
-                for (int i = 0; i<R; i++){
-                        for (int j=0; j<C; j++){
-                                matrix[i][j] = 0;
-                        }
-                }
+        Matrix(int R, int C) {
+    		matrix.resize(R, vector<T>(C, T{}));
 	}
 
-        array<T>& row(int r){
+		Matrix(){
+			for(int i =0; i<1; i++){
+				vector<T> v;
+				v.push_back(0);
+				matrix.push_back(v);
+			}
+		}
+
+        vector<T>& row(int r){
                 return matrix[r];
         }
-        int C(){
+        int C() const{
                 return matrix[0].size();
         }
-	int R(){
-		return matrix.size();
-	}
+		int R() const{
+			return matrix.size();
+		}
         T element(int x, int y) const{
                 return matrix[x][y];
         }
         void setelement(int x, int y, T z){
                 matrix[x][y] = z;
         }
-	void scalarmult(double a){
-		for(int i =0; i<R; i++){
-			for(int j=0; j<C; j++){
-				matrix[i][j] = a*matrix[i][j];
+		void scalarmult(double a){
+			for(int i =0; i<this->R(); i++){
+				for(int j=0; j<this->C(); j++){
+					matrix[i][j] = a*matrix[i][j];
 			}
 		}
 	}
+private:
+	vector<T> data;
 
 };
 template<typename T>
@@ -67,12 +75,12 @@ template<typename T>
 struct Node{
 	public:
 	Matrix<T> A;
-	Matrix<double> U;
-	Matrix<double> L;
+	Matrix<T> U;
+	Matrix<T> L;
 	vector<array<int,2>> P;
 	Node* next;
 	Node* back;
-	Node(const Matrix<T>& A1,const Matrix<double>& U1,const Matrix<double>& L1,const vector<array<int,2>> P1,Node* next1, Node* back1){
+	Node(const Matrix<T>& A1,const Matrix<T>& U1,const Matrix<T>& L1,const vector<array<int,2>> P1,Node* next1, Node* back1){
 			U = U1;
 			A = A1;
 			L = L1;
@@ -80,7 +88,7 @@ struct Node{
 			next = next1;
 			back = back1;
 	}
-	Node(const Matrix<T>& A1,const Matrix<double>& U1,const Matrix<double>& L1,const vector<array<int,2>> P1){
+	Node(const Matrix<T>& A1,const Matrix<T>& U1,const Matrix<T>& L1,const vector<array<int,2>> P1){
                         U = U1;
                         A = A1;
                         L = L1;
@@ -146,8 +154,8 @@ class LRUcache{
                 insertAfterHead(x);
                 return x;
         }
-                 
-	void put(const Matrix<T> A1,const Matrix<double> U1,const Matrix<double> L1,const vector<array<int,2>> P1){
+
+	void put(const Matrix<T> A1,const Matrix<T> U1,const Matrix<T> L1,const vector<array<int,2>> P1){
 		if(map.size() == capacity){
 			deletelast();
 			Node<T>* temp = new Node<T>(A1,U1, L1, P1);
@@ -161,17 +169,21 @@ class LRUcache{
 			}
 	}
 };
-	
+template<typename T>
+Matrix<T> make_matrix(int r, int c, const vector<T>& data);
+
 template<typename T>
 Matrix<T> MatrixAddition(Matrix<T> a, Matrix<T>  b);
 template<typename T>
 Matrix<T> MatrixMultiplication(Matrix<T> a, Matrix<T> b);
 template<typename T>
-Matrix<double> MatrixInverse(Matrix<T> a);
+Matrix<T> MatrixInverse(Matrix<T> a);
 template<typename T>
-Matrix<double> EquationSolver(Matrix<T> a, Matrix<T> b);
+Matrix<T> EquationSolver(Matrix<T> a, Matrix<T> b);
 template<typename T>
-Matrix<T> InputMatrix();
+Matrix<T> Solve(Matrix<T> a, Matrix<T> b);
+//template<typename T>
+//Matrix<T> InputMatrix();
 template<typename T>
 void PrintMatrix(Matrix<T> a);
 
@@ -179,8 +191,7 @@ class LossFunction{
     public:
         double MSE(Matrix<double> pred, Matrix<double> actual);
 };
-template<typename T>
-Matrix<double> Gradient_Descent(Matrix<double> x, Matrix<double> y, double alpha, int epochs);
+Matrix<double> Gradient_Descent(Matrix<double>& x, Matrix<double>& y, double alpha, int epochs);
 template<typename T>
 class LinearRegressor {  
     public:
@@ -191,7 +202,7 @@ class LinearRegressor {
 
         LinearRegressor(double learning_rate=0.0001 , int epoch=1000);
         void train(Matrix<double> x, Matrix<double> y);
-        Matrix<double> predict(Matrix<double> x, Matrix<double> pred);
+        Matrix<double> predict(Matrix<double> x, Matrix<double> pred, Matrix<double> WandB);
 
     private:
         double gettingValues(vector<double> x, Matrix<double> WandB);

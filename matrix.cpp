@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <array>
 #include <cmath>
+#include <pybind11/pybind11.h>
+#include <iostream>
+namespace py = pybind11;
 using namespace std;
 template<typename T>
 Matrix<T> MatrixAddition(Matrix<T> a, Matrix<T> b){
@@ -31,7 +34,7 @@ Matrix<T> MatrixMultiplication(Matrix<T> a, Matrix<T> b){
 	}
 	return c;
 }
-template<typename T>
+/*template<typename T>
 Matrix<T> InputMatrix(){
 	Matrix<T> a;
 	for(int i=0; i<a.R(); i++){
@@ -42,13 +45,13 @@ Matrix<T> InputMatrix(){
 		}
 	}
 	return a;
-}
+}*/
 template<typename T>
 void PrintMatrix(Matrix<T> a){
 	for (int i=0; i<a.R(); i++){
-			for (int j=0; j<a.C(); j++){
-			cout << a.element(i,j) << setw(16);
-			}		
+		for (int j=0; j<a.C(); j++){
+			py::print( a.element(i,j)) << setw(16);
+		}		
 			cout << "\n";
 	}
 }
@@ -62,12 +65,12 @@ Matrix<T> transpose(Matrix<T> a){
 	}
 	return b;
 }
-template<typename T>				
-Matrix<double> MatrixInverse(Matrix<T> a){
-	Matrix<double> c;
+template<typename T>
+Matrix<T> MatrixInverse(Matrix<T> a){
+	Matrix<T> c;
 	int K = 2*(c.R());
-	Matrix<double> d;
-	int N = a.R()
+	Matrix<T> d;
+	int N = a.R();
 	for (int i =0; i<N; i++){
 		for (int j=0; j<K; j++){
 			if (j==(i+N)){
@@ -86,26 +89,26 @@ Matrix<double> MatrixInverse(Matrix<T> a){
 	for (int i=0; i<N; i++){
 		for (int k=i+1; k<N; k++){
 			if (abs(d.element(i,i)) < abs(d.element(k,i))){
-				       vector<double> t;
+				       vector<T> t;
 				       t  = d.row(i);
 				       d.row(i) =d.row(k);
 				       d.row(k) = t;
 			}
 		}
 		 for (int j=0; j<K; j++){
-                                         float u;
+                                         T u;
                                          u = d.element(i,j)/d.element(i,i);
                                          d.setelement(i,j,u);
 		 }
 
 		for (int k=0; k<N; k++){
-			float x;
+			T x;
 			x = d.element(k,i);
 			if ( k == i){
 				}
 			else{
 				for(int j=0; j<K; j++){
-					float y;
+					T y;
 					y = d.element(k,j) -(d.element(i,j)*x);
 					d.setelement(k,j, y);
 				}
@@ -119,12 +122,22 @@ Matrix<double> MatrixInverse(Matrix<T> a){
 		}
 	}
 return c;
+};
+template <typename T>
+Matrix <T> make_matrix(int r, int c, const vector<T>& data) {
+	Matrix<T> mat(r, c);
+	for (int i = 0; i < r; ++i) {
+		for (int j = 0; j < c; ++j) {
+			mat.setelement(i, j, data[i * c + j]);
+		}
+	}
+	return mat;
 }
 template<typename T>
-Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
+Matrix<T> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 	if (LRUC.map.find(Up) != LRUC.map.end()){
                          Node<T>* alpha = LRUC.get(Up);
-			 Matrix<double> Lw;
+			 Matrix<T> Lw;
 			 vector<array<int,2>> Pr ;
 			 Up = alpha->U;
 			 Lw = alpha->L;
@@ -134,7 +147,7 @@ Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 				 S.setelement(Pr[i][0], 0, S.element(Pr[i][1],0));
 				 S.setelement(Pr[i][1], 0, a);
 			 }
-			 vector<double> y;
+			 vector<T> y;
 			 int N = y.size();
 			 for (int i= 0; i<N; i++){
 				  y[i] = S.element(i,0);
@@ -143,17 +156,17 @@ Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 				  }
 				  y[i] = y[i]/Lw.element(i,i);
 			 }
-			 Matrix<double> x;
+			 Matrix<T> x;
 			 for (int i= N-1; i>-1; i--){
 				 x.setelement(i,0, y[i]);
 				 for(int j=N-1; j>i; j++){
 					 if (j!=i){
-						 double z;
+						 T z;
 						 z  = x.element(i,0) - (Up.element(i,j))*(x.element(j,0));
 						 x.setelement(i,0,z);
 					 }
 				 }
-				 double k;
+				 T k;
 				 k = x.element(i,0)/Up.element(i,i);
 				 x.setelement(i,0,k);
 			 }
@@ -161,17 +174,17 @@ Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 	}
 	else{
 		Matrix<T> A = Up;
-		int N = A.R()
-		Matrix<double> Lw;
+		int N = A.R();
+		Matrix<T> Lw;
 		vector< array<int,2>> Pr;
 		for (int i=0; i<N; i++){
 			for (int k=i+1; k<N; k++){
 				if (abs(Up.element(i,i)) < abs(Up.element(k,i))){
-					vector<double> t;
+					vector<T> t;
 					t = Up.row(i);
 					Up.row(i) = Up.row(k);
 					Up.row(k) = t;
-					vector<double> f;
+					vector<T> f;
 					f = S.row(i);
 					S.row(i) = S.row(k);
 					S.row(k) = f;
@@ -187,32 +200,32 @@ Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 				else{
 					Lw.setelement(k,i, (Up.element(k,i))/Up.element(i,i));
 					for(int j=0; j<N; j++){
-						double y;
+						T y;
 						y = Up.element(k,j) - (Up.element(i,j)*x);
 						Up.setelement(k,j,y);
 					}
 				}
 			}
 		}
-		vector<double> y;
+		vector<T> y;
                 for (int i= 0; i<N; i++){
 			y[i] = S.element(i,0);
-                        for(j=i; j<i; j++){
+                        for(int j=i; j<i; j++){
 				y[i] = y[i] - (Lw.element(i,j))*y[j];
 			}
 			y[i] = y[i]/Lw.element(i,i);
 		}
-		Matrix<double> x;
+		Matrix<T> x;
                 for (int i= N-1; i>-1; i--){
 			x.setelement(i,0, y[i]);
 			for(int j=N-1; j>i; j++){
 				if (j!=i){
-					double z;
+					T z;
 					z  = x.element(i,0) - (Up.element(i,j))*(x.element(j,0));
                                         x.setelement(i,0,z);
 				}
 			}
-			double k;
+			T k;
 			k = x.element(i,0)/Up.element(i,i);
 			x.setelement(i,0,k);
 		}
@@ -220,6 +233,11 @@ Matrix<double> EquationSolver(Matrix<T> Up, Matrix<T> S, LRUcache<T>& LRUC){
 		LRUC.put(A,Up,Lw,Pr);		
 	}
 	
+}
+template<typename T>
+Matrix<T> Solve(Matrix<T> a, Matrix<T> b){
+	static LRUcache<T> LRUC(100);
+	return EquationSolver(a, b, LRUC);
 }
 template<typename T>
 bool operator==(const Matrix<T>& a, const Matrix<T>& b){
@@ -239,44 +257,48 @@ LinearRegressor<T>::LinearRegressor(double learning_rate,int epoch){
     this->epoch = epoch;
 
 }
+Matrix<double> Gradient_Descent( Matrix<double>& x, Matrix<double>& y, double alpha, int epochs){
+
+    int m = x.R();
+
+
+    Matrix<double> WandB;
+
+    for (int j=0 ; j<epochs; j++) {
+        Matrix<double> updatedWandB;
+		Matrix<double> error;
+		auto temp1 = MatrixMultiplication(x, updatedWandB);
+		auto temp2 = MatrixMultiplication(x, error);
+		temp1.scalarmult(-1);
+        error = MatrixAddition(y, temp1);
+		(updatedWandB).scalarmult(alpha);
+		temp2.scalarmult(-1/m);
+		updatedWandB = MatrixAddition(updatedWandB, temp2);
+		WandB = MatrixAddition(WandB, updatedWandB);
+    }
+    return WandB;
+}
 template<typename T>
 void LinearRegressor<T>::train(Matrix<double> x, Matrix<double> y){
 
-    int sz = x.R();
-
     int features = x.C();
+	double Alp = this->alpha;
+	int Epochs = this->epoch;
 
-    Matrix<double> WandB = Gradient_Descent(x,y,alpha,epoch);
+
+    Matrix<double> WandB = Gradient_Descent(x,y,Alp,Epochs);
 
     this->bias = WandB.element(features,0);
     this->features = features;
 
 }
 // R-> observations; C -> Features
+
 template<typename T>
-Matrix<double> Gradient_Descent(const Matrix<double> x, const Matrix<double> y, double alpha, int epochs){
-
-    int m = x.R();
-
-    int n = x.C();
-    Matrix<double> WandB;
-
-    for (int j=0 ; j<epochs; j++) {
-        Matrix<double> updatedWandB;
-	Matrix<double> error;
-	auto temp1 = MatrixMultiplication(x, updatedWandB);
-	auto temp2 = MatrixMultilplication(x, error);
-        error = MatrixAddition(y, temp1.scalarmult(-1));
-	updatedWandB = MatrixAddition(updatedWandB, temp2.scalarmult(-1/R));
-	WandB = MatrixAddition(WandB, (updatedWandB).scalarmult(alpha));
-    }
-    return WandB;
-}
-template<typename T>
-Matrix<double> LinearRegressor<T>::predict(const Matrix<double> x, Matrix<double> pred) {
+Matrix<double> LinearRegressor<T>::predict( Matrix<double> x, Matrix<double> pred, Matrix<double> WandB) {
     int pred_size = x.R();
     for (int i = 0; i < pred_size; i++) {
-        pred.setelement(i , 0 , gettingValues(x.row(i)));
+        pred.setelement(i , 0 , gettingValues(x.row(i), WandB));
     }
     return pred;
 }
@@ -299,3 +321,40 @@ double LossFunction::MSE(Matrix<double> pred, Matrix<double> actual){
     return FinalLoss;
 
 }
+
+template Matrix<double> MatrixAddition(Matrix<double> a, Matrix<double> b);
+template Matrix<float> MatrixAddition(Matrix<float> a, Matrix<float> b);
+template Matrix<int> MatrixAddition(Matrix<int> a, Matrix<int> b);
+
+
+template Matrix<double> MatrixMultiplication(Matrix<double> a, Matrix <double> b);
+template Matrix<float> MatrixMultiplication(Matrix<float> a, Matrix <float> b);
+template Matrix<int> MatrixMultiplication(Matrix<int> a, Matrix <int> b);
+
+
+template Matrix<double> transpose(Matrix<double> a);
+template Matrix<float> transpose(Matrix<float> a);
+template Matrix<int> transpose(Matrix<int> a);
+
+
+template Matrix<double> MatrixInverse(Matrix<double> a);
+template Matrix<float> MatrixInverse(Matrix<float> a);
+
+template Matrix<double> EquationSolver(Matrix<double> a, Matrix<double> b, LRUcache<double>& LRUC);
+template Matrix<float> EquationSolver(Matrix<float> a, Matrix<float> b, LRUcache<float>& LRUC);
+
+template Matrix<double> Solve(Matrix<double> a, Matrix<double> b);
+template Matrix<float> Solve(Matrix<float> a, Matrix<float> b);
+
+template Matrix<int> make_matrix(int r, int c, const vector<int>& data);
+template Matrix<float> make_matrix(int r, int c, const vector<float>& data);
+template Matrix<double> make_matrix(int r, int c, const vector<double>& data);
+
+template class LinearRegressor<double>;
+
+
+
+
+
+
+
