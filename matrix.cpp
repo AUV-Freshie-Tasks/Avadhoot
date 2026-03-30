@@ -267,13 +267,12 @@ Matrix<double> Gradient_Descent( Matrix<double>& x, Matrix<double>& y, double al
     for (int j=0 ; j<epochs; j++) {
         Matrix<double> updatedWandB;
 		Matrix<double> error;
-		auto temp1 = MatrixMultiplication(x, updatedWandB);
-		auto temp2 = MatrixMultiplication(x, error);
+		auto temp1 = MatrixMultiplication(x, WandB);
 		temp1.scalarmult(-1);
         error = MatrixAddition(y, temp1);
-		(updatedWandB).scalarmult(alpha);
-		temp2.scalarmult(-1/m);
-		updatedWandB = MatrixAddition(updatedWandB, temp2);
+		updatedWandB = MatrixMultiplication(transpose(x),error)
+		(updatedWandB).scalarmult(-1*alpha);
+		
 		WandB = MatrixAddition(WandB, updatedWandB);
     }
     return WandB;
